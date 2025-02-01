@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 300px;
+        }
+
+        input {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 70%;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #weatherResult, #forecastResult {
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <input type="text" id="location" placeholder="Enter a city" />
+        <button id="getWeather">Get Weather</button>
+        <div id="weatherResult"></div>
+        <div id="forecastResult"></div>
+    </div>
+    <script>
+        document.getElementById('getWeather').addEventListener('click', function() {
+            const location = document.getElementById('location').value;
+            const apiKey = 'de247e99c85849a683861909250102'; // Your API key
+            const currentWeatherUrl = `http://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${location}&aqi=yes`;
+            const forecastUrl = `http://api.weatherapi.com/v1/forecast.json?key=${apiKey}&q=${location}&days=3`;
+
+            // Fetch current weather
+            fetch(currentWeatherUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Location not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const weatherResult = document.getElementById('weatherResult');
+                    weatherResult.innerHTML = `
+                        <h2>Current Weather in ${data.location.name}, ${data.location.country}</h2>
+                        <p>Temperature: ${data.current.temp_c} °C</p>
+                        <p>Condition: ${data.current.condition.text}</p>
+                        <p>Humidity: ${data.current.humidity}%</p>
+                        <p>Wind: ${data.current.wind_kph} kph</p>
+                    `;
+                })
+                .catch(error => {
+                    const weatherResult = document.getElementById('weatherResult');
+                    weatherResult.innerHTML = `<p style="color: red;">${error.message}</p>`;
+                });
+
+            // Fetch forecast
+            fetch(forecastUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Location not found');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const forecastResult = document.getElementById('forecastResult');
+                    let forecastHTML = `<h2>3-Day Forecast</h2>`;
+                    data.forecast.forecastday.forEach(day => {
+                        forecastHTML += `
+                            <div>
+                                <h3>${day.date}</h3>
+                                <p>Max Temp: ${day.day.maxtemp_c} °C</p>
+                                <p>Min Temp: ${day.day.mintemp_c} °C</p>
+                                <p>Condition: ${day.day.condition.text}</p>
+                            </div>
+                        `;
+                    });
+                    forecastResult.innerHTML = forecastHTML;
+                })
+                .catch(error => {
+                    const forecastResult = document.getElementById('forecastResult');
+                    forecastResult.innerHTML = `<p style="color: red;">${error.message}</p>`;
+                });
+        });
+    </script>
+</body>
+</html>
